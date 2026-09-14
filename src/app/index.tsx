@@ -1,98 +1,79 @@
-import * as Device from 'expo-device';
-import { Platform, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {useState} from "react";
+import {Platform, StyleSheet} from "react-native";
+import {SafeAreaView} from "react-native-safe-area-context";
 
-import { AnimatedIcon } from '@/components/animated-icon';
-import { HintRow } from '@/components/hint-row';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { WebBadge } from '@/components/web-badge';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
-
-function getDevMenuHint() {
-  if (Platform.OS === 'web') {
-    return <ThemedText type="small">use browser devtools</ThemedText>;
-  }
-  if (Device.isDevice) {
-    return (
-      <ThemedText type="small">
-        shake device or press <ThemedText type="code">m</ThemedText> in terminal
-      </ThemedText>
-    );
-  }
-  const shortcut = Platform.OS === 'android' ? 'cmd+m (or ctrl+m)' : 'cmd+d';
-  return (
-    <ThemedText type="small">
-      press <ThemedText type="code">{shortcut}</ThemedText>
-    </ThemedText>
-  );
-}
+import {ThemedText} from "@/components/themed-text";
+import {ThemedView} from "@/components/themed-view";
+import TotalOwed from "@/components/total-owed";
+import {WebBadge} from "@/components/web-badge";
+import {BottomTabInset, MaxContentWidth, Spacing} from "@/constants/theme";
+import {SEED} from "@/data/customers";
 
 export default function HomeScreen() {
-  return (
-    <ThemedView style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
-        <ThemedView style={styles.heroSection}>
-          <AnimatedIcon />
-          <ThemedText type="title" style={styles.title}>
-            Welcome to&nbsp;Expo
-          </ThemedText>
-        </ThemedView>
+	const [customers, setCustomers] = useState(SEED);
 
-        <ThemedText type="code" style={styles.code}>
-          get started
-        </ThemedText>
+	const total = customers.reduce((sum, c) => sum + c.balance, 0);
 
-        <ThemedView type="backgroundElement" style={styles.stepContainer}>
-          <HintRow
-            title="Try editing"
-            hint={<ThemedText type="code">src/app/index.tsx</ThemedText>}
-          />
-          <HintRow title="Dev tools" hint={getDevMenuHint()} />
-          <HintRow
-            title="Fresh start"
-            hint={<ThemedText type="code">npm run reset-project</ThemedText>}
-          />
-        </ThemedView>
+	return (
+		<ThemedView style={styles.container}>
+			<SafeAreaView style={styles.safeArea}>
+				<ThemedView style={styles.heroSection}>
+					<ThemedText type="code" style={styles.code}>
+						sari-sari store
+					</ThemedText>
+					<ThemedText type="title" style={styles.title}>
+						Welcome to Mama Mia
+					</ThemedText>
+					<ThemedText type="code" style={styles.code}>
+						Customer Credit
+					</ThemedText>
+				</ThemedView>
 
-        {Platform.OS === 'web' && <WebBadge />}
-      </SafeAreaView>
-    </ThemedView>
-  );
+				<ThemedView type="backgroundElement" style={styles.stepContainer}>
+					<TotalOwed total={total} />
+					<ThemedText type="code" style={styles.code}>
+						Customers with balance: 2 of 3
+					</ThemedText>
+				</ThemedView>
+
+				{Platform.OS === "web" && <WebBadge />}
+			</SafeAreaView>
+		</ThemedView>
+	);
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    flexDirection: 'row',
-  },
-  safeArea: {
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    alignItems: 'center',
-    gap: Spacing.three,
-    paddingBottom: BottomTabInset + Spacing.three,
-    maxWidth: MaxContentWidth,
-  },
-  heroSection: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    gap: Spacing.four,
-  },
-  title: {
-    textAlign: 'center',
-  },
-  code: {
-    textTransform: 'uppercase',
-  },
-  stepContainer: {
-    gap: Spacing.three,
-    alignSelf: 'stretch',
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.four,
-    borderRadius: Spacing.four,
-  },
+	container: {
+		flex: 1,
+		justifyContent: "center",
+		flexDirection: "row",
+	},
+	safeArea: {
+		flex: 1,
+		paddingHorizontal: Spacing.four,
+		alignItems: "stretch",
+		gap: Spacing.three,
+		paddingBottom: BottomTabInset + Spacing.three,
+		maxWidth: MaxContentWidth,
+	},
+	heroSection: {
+		alignItems: "flex-start",
+		justifyContent: "center",
+		flex: 1,
+		paddingHorizontal: Spacing.four,
+		gap: Spacing.four,
+	},
+	title: {
+		textAlign: "left",
+	},
+	code: {
+		textTransform: "uppercase",
+	},
+	stepContainer: {
+		gap: Spacing.three,
+		alignSelf: "stretch",
+		paddingHorizontal: Spacing.three,
+		paddingVertical: Spacing.four,
+		borderRadius: Spacing.four,
+	},
 });
