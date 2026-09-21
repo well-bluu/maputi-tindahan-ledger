@@ -1,18 +1,55 @@
-import {useState} from "react";
-import {Platform, StyleSheet} from "react-native";
+import {
+	ActivityIndicator,
+	Button,
+	Platform,
+	StyleSheet,
+	View,
+} from "react-native";
 import {SafeAreaView} from "react-native-safe-area-context";
 
 import {ThemedText} from "@/components/themed-text";
 import {ThemedView} from "@/components/themed-view";
-import TotalOwed from "@/components/total-owed";
 import {WebBadge} from "@/components/web-badge";
 import {BottomTabInset, MaxContentWidth, Spacing} from "@/constants/theme";
-import {SEED} from "@/data/customers";
+
+import {summarise} from "@/data/summary";
+import {Stat} from "@/components/stat";
+import {useCustomers} from "@/hooks/use-customers";
+import {ShareBar} from "@/components/share-bar";
 
 export default function HomeScreen() {
-	const [customers, setCustomers] = useState(SEED);
+	const {status, customers, problem, retry} = useCustomers();
 
-	const total = customers.reduce((sum, c) => sum + c.balance, 0);
+	if (status === "loading") {
+		return (
+			<ThemedView style={styles.middle}>
+				<ActivityIndicator />
+				<ThemedText themeColor="textSecondary">Loading the ledger</ThemedText>
+			</ThemedView>
+		);
+	}
+
+	if (status === "error") {
+		return (
+			<ThemedView style={styles.middle}>
+				<ThemedText>{problem}</ThemedText>
+				<Button title="Try again" onPress={retry} />
+			</ThemedView>
+		);
+	}
+
+	if (status === "empty") {
+		return (
+			<ThemedView style={styles.middle}>
+				<ThemedText>No customers yet.</ThemedText>
+				<ThemedText type="small" themeColor="textSecondary">
+					Add the first one to see the totals.
+				</ThemedText>
+			</ThemedView>
+		);
+	}
+
+	const summary = summarise(customers);
 
 	return (
 		<ThemedView style={styles.container}>
@@ -30,10 +67,39 @@ export default function HomeScreen() {
 				</ThemedView>
 
 				<ThemedView type="backgroundElement" style={styles.stepContainer}>
-					<TotalOwed total={total} />
-					<ThemedText type="code" style={styles.code}>
-						Customers with balance: 2 of 3
+					<View style={styles.statRow}>
+						<Stat label="Total owed" value={`₱ ${summary.total.toFixed(2)}`} />
+						<Stat
+							label="Average owed"
+							value={`₱ ${summary.average.toFixed(2)}`}
+						/>
+					</View>
+					<View style={styles.statRow}>
+						<Stat
+							label="Still owing"
+							value={`${summary.owing} of ${summary.count}`}
+						/>
+						<Stat label="Settled" value={String(summary.settled)} />
+					</View>
+				</ThemedView>
+
+				<ThemedView type="backgroundElement" style={styles.card}>
+					<ThemedText type="small" themeColor="textSecondary">
+						Share of what is owed
 					</ThemedText>
+					{summary.ranked.map((c) => (
+						<ShareBar
+							key={c.id}
+							name={c.name}
+							balance={c.balance}
+							share={c.share}
+						/>
+					))}
+					{summary.ranked.length === 0 && (
+						<ThemedText themeColor="textSecondary">
+							Everyone has paid up.
+						</ThemedText>
+					)}
 				</ThemedView>
 
 				{Platform.OS === "web" && <WebBadge />}
@@ -76,4 +142,12 @@ const styles = StyleSheet.create({
 		paddingVertical: Spacing.four,
 		borderRadius: Spacing.four,
 	},
+	statRow: {flexDirection: "row", gap: Spacing.four},
+	middle: {
+		flex: 1,
+		alignItems: "center",
+		justifyContent: "center",
+		gap: Spacing.two,
+	},
+	card: {borderRadius: Spacing.four, padding: Spacing.four, gap: Spacing.four},
 });
