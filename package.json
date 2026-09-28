@@ -1,6 +1,6 @@
 {
-	"name": "Kendall Maputi Week 2",
-	"slug": "kendall-maputi-week-2",
+	"name": "Maputi Tindahan Ledger",
+	"slug": "maputi-tindahan-ledger",
 	"main": "expo-router/entry",
 	"version": "1.0.0",
 	"dependencies": {
