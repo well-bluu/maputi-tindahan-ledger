@@ -1,3 +1,11 @@
+import {supabase} from "@/lib/supabase";
+
+export type Profile = {
+	name: string;
+	email: string;
+	role: "admin" | "client";
+};
+
 export type Customer = {
 	id: string;
 	name: string;
@@ -14,8 +22,16 @@ function timeout(ms: number): Promise<never> {
 	);
 }
 
+async function authHeader() {
+	const {data} = await supabase.auth.getSession();
+	return {Authorization: "Bearer " + data.session?.access_token};
+}
+
 async function get(path: string) {
-	const res = await Promise.race([fetch(BASE + path), timeout(8000)]);
+	const res = await Promise.race([
+		fetch(BASE + path, {headers: await authHeader()}),
+		timeout(8000),
+	]);
 	if (!res.ok) throw new Error(String(res.status));
 	return res.json();
 }
@@ -27,7 +43,7 @@ export async function addCustomer(
 	const res = await Promise.race([
 		fetch(BASE + "/api/customers", {
 			method: "POST",
-			headers: {"Content-Type": "application/json"},
+			headers: {"Content-Type": "application/json", ...(await authHeader())},
 			body: JSON.stringify({name, balance}),
 		}),
 		timeout(8000),
@@ -39,3 +55,4 @@ export async function addCustomer(
 export const fetchCustomers = (): Promise<Customer[]> => get("/api/customers");
 export const fetchCustomer = (id: string): Promise<Customer> =>
 	get("/api/customers/" + id);
+export const fetchProfile = (): Promise<Profile> => get("/api/me");

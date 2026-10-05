@@ -20,11 +20,14 @@ import {useTheme} from "@/hooks/use-theme";
 import {useRouter} from "expo-router";
 import {AddCustomerModal} from "@/components/add-customer-modal";
 import {useCustomers} from "@/hooks/use-customers";
+import {useProfile} from "@/hooks/use-profile";
 
 export default function CustomerScreen() {
 	const theme = useTheme();
 	const router = useRouter();
 	const {status, customers, problem, retry} = useCustomers();
+	const profile = useProfile();
+
 	const [query, setQuery] = useState("");
 	const [adding, setAdding] = useState(false);
 
@@ -67,7 +70,10 @@ export default function CustomerScreen() {
 					{color: theme.text, borderColor: theme.textSecondary},
 				]}
 			/>
-			<Button title="Add customer" onPress={() => setAdding(true)} />
+			{profile?.role === "admin" && (
+				<Button title="Add customer" onPress={() => setAdding(true)} />
+			)}
+
 			<AddCustomerModal
 				visible={adding}
 				onClose={() => setAdding(false)}
